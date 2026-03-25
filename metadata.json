@@ -1,0 +1,5 @@
+{
+  "name": "PDF Order Extractor",
+  "description": "Extracts and structures order data from long PDFs using AI.",
+  "requestFramePermissions": []
+}
