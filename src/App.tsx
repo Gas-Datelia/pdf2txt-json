@@ -11,9 +11,7 @@ import {
   Copy,
   CheckCircle2,
   AlertCircle,
-  FileJson,
-  LayoutList,
-  Layers
+  FileJson
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -22,8 +20,6 @@ export default function App() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  const [mode, setMode] = useState<'text' | 'json'>('json');
-  const [useChunked, setUseChunked] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -34,19 +30,18 @@ export default function App() {
     setLoading(true);
     setError(null);
     setResult(null);
-    setStatus(useChunked ? 'Procesando página por página (se paraleliza en lotes de 5)...' : 'Procesando (esto puede tardar varios minutos en PDFs grandes)...');
+    setStatus('Procesando página por página (se paraleliza en lotes de 5)...');
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minute timeout
 
     try {
-      const endpoint = useChunked ? '/api/extract-chunked' : '/api/extract';
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/extract-chunked', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url, mode }),
+        body: JSON.stringify({ url }),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
@@ -94,7 +89,7 @@ export default function App() {
             <FileText size={32} className="text-[#5A5A40]" />
           </motion.div>
           <h1 className="text-4xl font-serif italic text-[#141414] mb-2">Convierte PDFs a texto o JSON estructurado</h1>
-          <p className="text-[#5A5A40] opacity-80">Extracción técnica y precisa de datos</p>
+          <p className="text-[#5A5A40] opacity-80">Extracción de Alta Fidelidad (Página x Página)</p>
         </header>
 
         {/* Input Section */}
@@ -119,33 +114,10 @@ export default function App() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex bg-[#F5F5F0] p-1 rounded-xl">
-                <button
-                  onClick={() => setMode('json')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'json' ? 'bg-white shadow-sm text-[#141414]' : 'text-[#5A5A40] opacity-60'}`}
-                >
-                  <FileJson size={16} />
-                  JSON
-                </button>
-                <button
-                  onClick={() => setMode('text')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'text' ? 'bg-white shadow-sm text-[#141414]' : 'text-[#5A5A40] opacity-60'}`}
-                >
-                  <LayoutList size={16} />
-                  Texto
-                </button>
+              <div className="flex items-center gap-2 text-sm text-[#5A5A40]">
+                <FileJson size={16} />
+                <span className="font-medium">Salida: JSON estructurado</span>
               </div>
-
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={useChunked}
-                  onChange={(e) => setUseChunked(e.target.checked)}
-                  className="w-4 h-4 rounded border-[#5A5A40] text-[#5A5A40] focus:ring-[#5A5A40]"
-                />
-                <Layers size={16} className="text-[#5A5A40]" />
-                <span className="text-sm text-[#5A5A40] font-medium">Página x Página</span>
-              </label>
 
               <button
                 onClick={handleExtract}
@@ -189,7 +161,7 @@ export default function App() {
               className="bg-white rounded-3xl shadow-sm border border-[#E4E3E0] overflow-hidden"
             >
               <div className="flex items-center justify-between p-6 border-b border-[#F5F5F0]">
-                <h2 className="text-lg font-serif italic">Validación de Datos</h2>
+                <h2 className="text-lg font-serif italic">Resultado de Extracción</h2>
                 <button
                   onClick={copyToClipboard}
                   className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-[#5A5A40] hover:text-[#141414] transition-colors"
@@ -201,7 +173,7 @@ export default function App() {
 
               <div className="p-0 bg-[#151619] max-h-[80vh] overflow-auto">
                 <pre className="p-6 font-mono text-sm text-[#00FF00] leading-relaxed">
-                  {mode === 'json' ? JSON.stringify(JSON.parse(result), null, 2) : result}
+                  {JSON.stringify(JSON.parse(result), null, 2)}
                 </pre>
               </div>
             </motion.div>
@@ -209,7 +181,7 @@ export default function App() {
         </AnimatePresence>
 
         <footer className="mt-12 text-center text-[#5A5A40] opacity-40 text-[10px] uppercase tracking-[0.2em]">
-          PDF Data Extraction Tool • Restricted Output Mode
+          PDF Data Extraction Tool • High Fidelity Mode Activated
         </footer>
       </div>
     </div>
